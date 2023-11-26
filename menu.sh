@@ -21,9 +21,20 @@ compilar_codigo ()
     re="^[^[:space:]]+\.c$"
     if [[ -f $archivo && $archivo =~ $re ]]; then
         gcc $archivo -o simulador
-        echo
     else
         echo 'Dicho archivo no existe o no se puede compilar'
+    fi
+}
+
+ejecutar_script ()
+{
+    echo 'Elije el número de asistentes de la simulación (Tiene que haber al menos 1)'
+    echo
+    read asistentes
+    if [[ $asistentes -gt 0 ]]; then
+        ./simulador $asistentes
+    else
+        echo 'El numero de asistentes elejido no es correcto'
     fi
 }
 
@@ -37,7 +48,8 @@ menu ()
             echo
         ;;
         3) if [[ -f "simulador" && -x 'simulador' ]]; then
-            echo "TODO"; echo
+            ejecutar_script
+            echo
         else
             printf "No se ha encontrado el archivo o bien este no se puede ejecutar\n"
             echo
