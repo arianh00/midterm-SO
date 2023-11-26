@@ -18,6 +18,7 @@ compilar_codigo ()
     echo 'El archivo se compilara como: (simulador)'
     echo
     read archivo
+    # Utilizo un regex para asegurar que el archivo termina en .c y que no tiene espacios en blanco
     re="^[^[:space:]]+\.c$"
     if [[ -f $archivo && $archivo =~ $re ]]; then
         gcc $archivo -o simulador
@@ -47,6 +48,7 @@ menu ()
         2) compilar_codigo
             echo
         ;;
+        #Se comprueba que exista el ejecutable llamado simulador
         3) if [[ -f "simulador" && -x 'simulador' ]]; then
             ejecutar_script
             echo
