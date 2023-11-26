@@ -10,14 +10,15 @@ void handler_encargado();
 void handler_asistentes();
 
 int main (int argc, char *argv[]) {
-    srand(2);
     pid_t tecnico;
     pid_t encargado;
-    if(argc <= 1){
+    if(argc != 2){
+        printf("No se han recibido unos argumentos adecuados\n");
         exit(-1);
     }
+
     int numAsistentes = atoi(argv[1]);
-    pid_t asistentes[numAsistentes];
+    pid_t* asistentes = (pid_t*)malloc(sizeof(pid_t)*numAsistentes);
 
     for (size_t i = 0; i < numAsistentes+2; i++)
     {
@@ -45,7 +46,7 @@ int main (int argc, char *argv[]) {
                     }
                     break;
                 default:
-                    printf("Asistente %d creado\n", (int)i);
+                    printf("Asistente %d creado\n", (int)(i-1));
                     if(signal(SIGUSR2, handler_asistentes) == SIG_ERR){
                         perror("Llamada a signal fallida.");
                         exit(-1);
@@ -73,10 +74,8 @@ int main (int argc, char *argv[]) {
     
     sleep(2);
     
-    if(kill(tecnico, SIGUSR1) != 0){
+    while(kill(tecnico, SIGUSR1) != 0){
         perror("Lanzamiento de señal SIGUSR1 al tecnico ha fallado.");
-        // TODO matar hijos?
-        exit(-1);
     }
     
     waitpid(tecnico, &estado_tecnico, 0);
@@ -91,9 +90,8 @@ int main (int argc, char *argv[]) {
         exit(0);
     }
     
-    if(kill(encargado, SIGUSR1) != 0){
+    while(kill(encargado, SIGUSR1) != 0){
         perror("Lanzamiento de señal SIGUSR1 al encargado ha fallado.");
-        exit(-1);
     }
     
     waitpid(encargado, &estado_encargado, 0);
@@ -102,9 +100,8 @@ int main (int argc, char *argv[]) {
     
     for (size_t i = 0; i < numAsistentes; i++)
     {
-        if(kill(asistentes[i], SIGUSR2) != 0){
+        while(kill(asistentes[i], SIGUSR2) != 0){
             perror("Lanzamiento de señal SIGUSR2 a un asistente ha fallado.");
-            exit(-1);
         }
     }
     
@@ -119,6 +116,7 @@ int main (int argc, char *argv[]) {
         pasajeros -= 10;
     }
     printf("Pasajeros abordo: %d\n", pasajeros);
+    free(asistentes);
 }
 
 void handler_tecnico(){
@@ -126,6 +124,7 @@ void handler_tecnico(){
         perror("Llamada a signal fallida.");
         exit(-1);
     }
+    srand(getpid());
     printf("Se ha recibido la señal, comprobando si el vuelo es viable.\n");
     int tiempo_sueno = (rand() % 4) + 3;
     sleep(tiempo_sueno);
@@ -142,6 +141,7 @@ void handler_encargado(){
         perror("Llamada a signal fallida.");
         exit(-1);
     }
+    srand(getpid());
     printf("Se ha recibido la señal, comprobando si hay overbooking.\n");
     int overbooking = rand() % 2;
     sleep(2);
@@ -158,6 +158,7 @@ void handler_asistentes(){
         perror("Llamada a signal fallida.");
         exit(-1);
     }
+    srand(getpid());
     printf("Se ha recibido la señal, procediendo con un embarque.\n");
     int tiempo_embarque = (rand() % 4) + 3;
     sleep(tiempo_embarque);
