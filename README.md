@@ -1,4 +1,4 @@
-# Flight Coordinator (Currently Developing)
+# Flight Coordinator
 ### Description
 I developed this project as the submission for my midterm assignment of my ***OPERATING SYSTEMS*** course at my local University ***ULE*** (Universidad de León)
 
