@@ -101,15 +101,21 @@ int main (int argc, char *argv[]) {
     
     // Si el vuelo no es viable (exit con 0), entonces matamos los procesos y salimos
     // Se sale con 0 dado que no ha ocurrido ningún error
-    if(WEXITSTATUS(estado_tecnico) == 0){
-        printf("El vuelo no es viable\n");
-        kill(encargado, SIGKILL);
-        for (size_t i = 0; i < numAsistentes; i++)
-        {
-            kill(asistentes[i], SIGKILL);
+    if (WIFEXITED(estado_tecnico)){
+        if(WEXITSTATUS(estado_tecnico) == 0){
+            printf("El vuelo no es viable\n");
+            kill(encargado, SIGKILL);
+            for (size_t i = 0; i < numAsistentes; i++)
+            {
+                kill(asistentes[i], SIGKILL);
+            }
+            exit(0);
         }
-        exit(0);
+    }else{
+        perror("Tecnico terminado por señal externa.");
+        exit(-1);
     }
+    
     
     // Se manda la señal SIGUSR1 al encargado hasta que la llamada no falle
     while(kill(encargado, SIGUSR1) != 0){
@@ -119,6 +125,11 @@ int main (int argc, char *argv[]) {
     // Esperamos a que el encargado termine
     waitpid(encargado, &estado_encargado, 0);
     
+    if(!WIFEXITED(estado_encargado)){
+        perror("Encargado terminado por señal externa.");
+        exit(-1);
+    }
+
     int pasajeros = 0;
     
     for (size_t i = 0; i < numAsistentes; i++)
@@ -134,6 +145,10 @@ int main (int argc, char *argv[]) {
     {
         // Esperamos a que cualquiera de los asistentes termine y añadimos los pasajeros al total
         wait(&pasajeros_embarcados);
+        if(!WIFEXITED(pasajeros_embarcados)){
+            perror("Un asistente ha terminado por señal externa");
+            exit(-1);
+        }
         pasajeros += WEXITSTATUS(pasajeros_embarcados);
     }
     
